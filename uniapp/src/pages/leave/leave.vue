@@ -1,6 +1,53 @@
 <template>
   <view class="leave-container">
     <view class="form-list">
+      <view class="form-item" v-if="isManager">
+        <view class="form-label">选择部门</view>
+        <picker 
+          :range="departmentList" 
+          :value="form.departmentIndex"
+          @change="onDepartmentChange"
+        >
+          <view class="form-value">
+            <text class="value-text" :class="{ placeholder: !form.department }">
+              {{ form.department || '请选择部门' }}
+            </text>
+            <text class="value-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item" v-if="isManager">
+        <view class="form-label">选择员工</view>
+        <picker 
+          :range="filteredEmployeeList" 
+          range-key="name"
+          :value="form.employeeIndex"
+          @change="onEmployeeChange"
+        >
+          <view class="form-value">
+            <text class="value-text" :class="{ placeholder: !form.userName }">
+              {{ form.userName ? `${form.userName} (${form.employeeCode || '工号'})` : '请选择员工' }}
+            </text>
+            <text class="value-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="form-item" v-if="!isManager">
+        <view class="form-label">申请人</view>
+        <view class="form-value">
+          <text class="value-text">{{ currentUserInfo.name || '当前用户' }}</text>
+        </view>
+      </view>
+
+      <view class="form-item" v-if="!isManager">
+        <view class="form-label">部门</view>
+        <view class="form-value">
+          <text class="value-text">{{ currentUserInfo.department || '未设置' }}</text>
+        </view>
+      </view>
+
       <view class="form-item">
         <view class="form-label">请假类型</view>
         <picker 
@@ -100,12 +147,36 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { applyLeave } from '@/api'
-import { showToast, showLoading, hideLoading, showModal } from '@/utils'
+import { storage, showToast, showLoading, hideLoading, showModal } from '@/utils'
 import dayjs from 'dayjs'
 
+const currentUserInfo = ref(storage.get('userInfo') || {})
+
+const isManager = computed(() => {
+  return currentUserInfo.value.role === 'admin' || currentUserInfo.value.role === 'manager'
+})
+
 const leaveTypes = ref(['年假', '病假', '事假', '婚假', '产假'])
+
+const departmentList = ref(['技术部', '销售部', '市场部', '人事部', '财务部'])
+
+const employeeList = ref([
+  { id: 1, name: '管理员', code: 'EMP001', department: '技术部', role: 'admin' },
+  { id: 2, name: '经理', code: 'EMP002', department: '销售部', role: 'manager' },
+  { id: 3, name: '张三', code: 'EMP003', department: '技术部', role: 'user' },
+  { id: 4, name: '李四', code: 'EMP004', department: '技术部', role: 'user' },
+  { id: 5, name: '王五', code: 'EMP005', department: '销售部', role: 'user' },
+  { id: 6, name: '赵六', code: 'EMP006', department: '市场部', role: 'user' },
+  { id: 7, name: '钱七', code: 'EMP007', department: '人事部', role: 'user' },
+  { id: 8, name: '孙八', code: 'EMP008', department: '财务部', role: 'user' }
+])
+
+const filteredEmployeeList = computed(() => {
+  if (!form.department) return []
+  return employeeList.value.filter(emp => emp.department === form.department)
+})
 
 const form = reactive({
   typeIndex: 0,
@@ -113,12 +184,42 @@ const form = reactive({
   endDate: '',
   days: 0,
   reason: '',
-  attachments: []
+  attachments: [],
+  department: '',
+  departmentIndex: -1,
+  employeeIndex: -1,
+  userId: null,
+  userName: '',
+  employeeCode: ''
 })
 
 const canSubmit = computed(() => {
-  return form.startDate && form.endDate && form.reason.trim().length > 0
+  const baseValid = form.startDate && form.endDate && form.reason.trim().length > 0
+  
+  if (isManager.value) {
+    return baseValid && form.department && form.userId
+  }
+  return baseValid
 })
+
+const onDepartmentChange = (e) => {
+  form.departmentIndex = e.detail.value
+  form.department = departmentList.value[form.departmentIndex]
+  form.employeeIndex = -1
+  form.userId = null
+  form.userName = ''
+  form.employeeCode = ''
+}
+
+const onEmployeeChange = (e) => {
+  form.employeeIndex = e.detail.value
+  const selectedEmployee = filteredEmployeeList.value[form.employeeIndex]
+  if (selectedEmployee) {
+    form.userId = selectedEmployee.id
+    form.userName = selectedEmployee.name
+    form.employeeCode = selectedEmployee.code
+  }
+}
 
 const onTypeChange = (e) => {
   form.typeIndex = e.detail.value
@@ -166,6 +267,17 @@ const handleRemove = (index) => {
 }
 
 const handleSubmit = async () => {
+  if (isManager.value) {
+    if (!form.department) {
+      showToast('请选择部门')
+      return
+    }
+    if (!form.userId) {
+      showToast('请选择员工')
+      return
+    }
+  }
+  
   if (!form.startDate) {
     showToast('请选择开始日期')
     return
@@ -183,22 +295,33 @@ const handleSubmit = async () => {
     return
   }
 
-  const confirm = await showModal(`确定要提交请假申请吗？\n请假类型：${leaveTypes.value[form.typeIndex]}\n请假天数：${form.days}天`)
+  const submitData = {
+    type: leaveTypes.value[form.typeIndex],
+    startDate: form.startDate,
+    endDate: form.endDate,
+    days: form.days,
+    reason: form.reason
+  }
+
+  if (isManager.value) {
+    submitData.userId = form.userId
+    submitData.userName = form.userName
+    submitData.department = form.department
+  } else {
+    submitData.userId = currentUserInfo.value.id
+    submitData.userName = currentUserInfo.value.name
+    submitData.department = currentUserInfo.value.department
+  }
+
+  const confirm = await showModal(
+    `确定要提交请假申请吗？\n${isManager.value ? `员工：${form.userName || currentUserInfo.value.name}\n` : ''}请假类型：${leaveTypes.value[form.typeIndex]}\n请假天数：${form.days}天`
+  )
   if (!confirm) return
 
   showLoading('提交中...')
 
   try {
-    const res = await applyLeave({
-      type: leaveTypes.value[form.typeIndex],
-      startDate: form.startDate,
-      endDate: form.endDate,
-      days: form.days,
-      reason: form.reason,
-      userId: 3,
-      userName: '张三',
-      department: '技术部'
-    })
+    const res = await applyLeave(submitData)
 
     if (res.code === 200) {
       showToast('提交成功', 'success')
@@ -213,6 +336,14 @@ const handleSubmit = async () => {
     hideLoading()
   }
 }
+
+onMounted(() => {
+  if (!isManager.value && currentUserInfo.value) {
+    form.userId = currentUserInfo.value.id
+    form.userName = currentUserInfo.value.name
+    form.department = currentUserInfo.value.department
+  }
+})
 </script>
 
 <style lang="scss" scoped>

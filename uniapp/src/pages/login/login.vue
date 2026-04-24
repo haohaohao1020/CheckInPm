@@ -92,6 +92,11 @@ const handleLogin = async () => {
       username: loginForm.username,
       password: loginForm.password
     })
+
+
+     uni.switchTab({
+          url: '/pages/index/index'
+        })
     
     if (res.code === 200) {
       storage.set('token', res.data.token)
