@@ -96,6 +96,32 @@
     </view>
 
     <view class="setting-list">
+      <view class="menu-item" @click="goProfile">
+        <view class="menu-icon icon-blue">
+          <text class="icon-text">信息</text>
+        </view>
+        <view class="menu-content">
+          <text class="menu-title">个人信息</text>
+          <text class="menu-desc">查看和编辑个人资料</text>
+        </view>
+        <view class="menu-arrow">
+          <text>›</text>
+        </view>
+      </view>
+
+      <view class="menu-item" @click="goPassword">
+        <view class="menu-icon icon-green">
+          <text class="icon-text">密码</text>
+        </view>
+        <view class="menu-content">
+          <text class="menu-title">修改密码</text>
+          <text class="menu-desc">修改登录密码</text>
+        </view>
+        <view class="menu-arrow">
+          <text>›</text>
+        </view>
+      </view>
+
       <view class="menu-item" @click="handleAbout">
         <view class="menu-icon icon-gray">
           <text class="icon-text">关于</text>
@@ -194,6 +220,18 @@ const goApproval = () => {
   uni.showToast({
     title: '功能开发中',
     icon: 'none'
+  })
+}
+
+const goProfile = () => {
+  uni.navigateTo({
+    url: '/pages/profile/profile'
+  })
+}
+
+const goPassword = () => {
+  uni.navigateTo({
+    url: '/pages/password/password'
   })
 }
 

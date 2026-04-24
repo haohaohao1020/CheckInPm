@@ -668,4 +668,33 @@ Mock.mock(/\/api\/export\/checkin/, 'get', (options) => {
   }
 })
 
+Mock.mock(/\/api\/user\/update/, 'post', (options) => {
+  const data = JSON.parse(options.body)
+  const userIndex = users.findIndex(u => u.id === data.id)
+  if (userIndex !== -1) {
+    users[userIndex] = { ...users[userIndex], ...data }
+  }
+  return {
+    code: 200,
+    data: null,
+    message: '更新成功'
+  }
+})
+
+Mock.mock(/\/api\/user\/change-password/, 'post', (options) => {
+  const { oldPassword, newPassword } = JSON.parse(options.body)
+  if (oldPassword === '123456') {
+    return {
+      code: 200,
+      data: null,
+      message: '密码修改成功'
+    }
+  } else {
+    return {
+      code: 400,
+      message: '原密码错误'
+    }
+  }
+})
+
 export default Mock

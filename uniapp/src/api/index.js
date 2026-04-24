@@ -22,6 +22,10 @@ export const applyRecheck = (data) => post('/recheck/apply', data)
 
 export const getStatisticsOverview = () => get('/statistics/overview')
 
+export const updateUserInfo = (data) => post('/user/update', data)
+
+export const changePassword = (data) => post('/user/change-password', data)
+
 export default {
   login,
   getUserInfo,
@@ -33,5 +37,7 @@ export default {
   getOvertimeList,
   applyOvertime,
   applyRecheck,
-  getStatisticsOverview
+  getStatisticsOverview,
+  updateUserInfo,
+  changePassword
 }

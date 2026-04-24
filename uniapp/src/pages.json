@@ -38,6 +38,18 @@
             }
         },
         {
+            "path": "pages/profile/profile",
+            "style": {
+                "navigationBarTitleText": "个人信息"
+            }
+        },
+        {
+            "path": "pages/password/password",
+            "style": {
+                "navigationBarTitleText": "修改密码"
+            }
+        },
+        {
             "path": "pages/mine/mine",
             "style": {
                 "navigationBarTitleText": "我的"

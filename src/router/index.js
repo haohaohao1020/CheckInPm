@@ -73,6 +73,18 @@ const routes = [
         name: 'RoleManagement',
         component: () => import('@/views/system/RoleManagement.vue'),
         meta: { title: '角色权限', icon: 'Lock', permission: 'role-management' }
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('@/views/Profile.vue'),
+        meta: { title: '个人信息', icon: 'User', requiresAuth: true }
+      },
+      {
+        path: 'change-password',
+        name: 'ChangePassword',
+        component: () => import('@/views/ChangePassword.vue'),
+        meta: { title: '修改密码', icon: 'Lock', requiresAuth: true }
       }
     ]
   },

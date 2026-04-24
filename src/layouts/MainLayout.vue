@@ -146,10 +146,10 @@ const hasPermission = (permission) => {
 const handleCommand = (command) => {
   switch (command) {
     case 'profile':
-      ElMessage.info('个人信息功能开发中...')
+      router.push('/profile')
       break
     case 'changePassword':
-      ElMessage.info('修改密码功能开发中...')
+      router.push('/change-password')
       break
     case 'logout':
       ElMessageBox.confirm('确定要退出登录吗？', '提示', {

@@ -40,6 +40,10 @@ export const getUserList = (params) => request.get('/user/list', { params })
 
 export const exportCheckin = (params) => request.get('/export/checkin', { params })
 
+export const updateUserInfo = (data) => request.post('/user/update', data)
+
+export const changePassword = (data) => request.post('/user/change-password', data)
+
 export default {
   login,
   getUserInfo,
@@ -60,5 +64,7 @@ export default {
   getStatisticsOverview,
   getStatisticsChart,
   getUserList,
-  exportCheckin
+  exportCheckin,
+  updateUserInfo,
+  changePassword
 }
