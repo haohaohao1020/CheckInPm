@@ -6,7 +6,7 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
-import './mock'
+// import './mock'  // 临时禁用 Mock，联调真实后端
 import './styles/index.scss'
 
 const app = createApp(App)
